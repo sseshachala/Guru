@@ -10,7 +10,7 @@ class URLRequest(BaseModel):
 
 router = APIRouter()
 
-@router.post("/api/upload-files", summary="Upload files", description="Endpoint to upload one or more files.",
+@router.post("/api/v1/pload-files", summary="Upload files", description="Endpoint to upload one or more files.",
              dependencies=[Depends(verify_token)])
 async def upload_files(files: list[UploadFile] = File(...)):
     response_data = []
@@ -19,13 +19,13 @@ async def upload_files(files: list[UploadFile] = File(...)):
         response_data.append(response)
     return JSONResponse(content=response_data)
 
-@router.post("/api/transcript-youtube", summary="Transcript YouTube", description="Transcript YouTube video",
+@router.post("/api/v1/transcript-youtube", summary="Transcript YouTube", description="Transcript YouTube video",
              dependencies=[Depends(verify_token)])
 async def transcript_youtube(request: URLRequest):
     task = process_transcript.delay(request.url)
     return JSONResponse(content={"task_id": task.id})
 
-@router.get("/api/task-status/{task_id}", summary="Get Task Status", description="Get the status of a Celery task",
+@router.get("/api/v1/task-status/{task_id}", summary="Get Task Status", description="Get the status of a Celery task",
              dependencies=[Depends(verify_token)])
 async def get_task_status(task_id: str):
     task = process_transcript.AsyncResult(task_id)

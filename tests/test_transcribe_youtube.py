@@ -2,7 +2,7 @@ import requests
 import json
 
 # Define the API endpoint and API key
-url = "http://localhost:8000/api/transcript-youtube"
+url = "http://localhost:8000/api/v1/transcript-youtube"
 jwt_token = "test123"  # Replace with your actual API key
 
 # Define the payload
