@@ -1,4 +1,4 @@
-# FastAPI File Upload Example
+# API for getting the base code for AI project
 
 This project demonstrates a simple file upload using FastAPI, including logging and test cases.
 
