@@ -1,0 +1,11 @@
+fastapi>=0.100.0
+uvicorn==0.21.1
+pytest==7.3.1
+pytest-mock==3.10.0
+httpx==0.24.1
+pydantic>=2.0
+pytest-html==3.2.0
+pytube
+moviepy
+celery[redis]
+python-jose
