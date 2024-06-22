@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatify Q & A your documents</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-white font-sans">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-gray-100 p-6 shadow-md">
+            <h2 class="text-2xl font-semibold mb-6">Buzz</h2>
+            <button class="w-full bg-gray-300 text-gray-800 py-2 mb-6 rounded" onclick="initializeSession()">+ New chat</button>
+            <ul class="space-y-4">
+                <li><a href="#" class="text-gray-800 hover:text-gray-600">Upload, Q & A</a></li>
+                <li><a href="#" class="text-gray-800 hover:text-gray-600">PDF, xls, txt, doc, docx</a></li>
+                <li><a href="#" class="text-gray-800 hover:text-gray-600">Chat Q and A.</a></li>
+                <li><a href="#" class="text-gray-800 hover:text-gray-600">Youtube transcripts</a></li>
+                <li><a href="#" class="text-gray-800 hover:text-gray-600">Download bot</a></li>
+            </ul>
+            <div class="mt-auto">
+                <p class="text-gray-800">Guest</p>
+                <button class="w-full bg-gray-300 text-gray-800 py-2 mt-2 rounded">Upgrade to Pro</button>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="flex-1 p-12">
+            <h1 class="text-4xl font-bold mb-12">Chatify Q & A your documents</h1>
+            <div class="flex items-center border border-gray-300 p-6 rounded-lg mb-12">
+                <img src="question-mark-icon.png" alt="Question Mark" class="w-12 h-12 mr-4">
+                <p class="text-gray-800">Dynamic 3 questions based on document</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <input type="text" id="query-input" placeholder="Create an HD wallpaper cat licking paw images" class="w-1/2 p-2 border border-gray-300 rounded">
+                <button class="bg-gray-300 text-gray-800 py-2 px-4 rounded" onclick="queryEmbedding()">Send</button>
+            </div>
+            <p class="text-xs text-gray-500 mt-4">BuzzBot may produce inaccurate information about people, places, or facts. <a href="#" class="text-blue-500">Privacy Notice</a></p>
+
+            <div class="mt-6">
+                <h2 class="text-2xl font-bold mb-4">Upload a Document</h2>
+                <input type="file" id="file-input" accept=".pdf,.txt,.docx,.xlsx">
+                <button class="bg-gray-300 text-gray-800 py-2 px-4 rounded mt-2" onclick="uploadFile()">Upload</button>
+                <p id="upload-result" class="mt-4 text-gray-800"></p>
+            </div>
+            <div class="mt-6">
+                <h2 class="text-2xl font-bold mb-4">Document Content</h2>
+                <textarea id="document-content" rows="10" cols="50" class="w-full p-2 border border-gray-300 rounded"></textarea>
+                <button class="bg-gray-300 text-gray-800 py-2 px-4 rounded mt-2" onclick="viewDocument()">View Document</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        let sessionId = null;
+        let filename = null;
+
+        async function initializeSession() {
+            const response = await fetch('/api/v1/initialize', { method: 'POST' });
+            const data = await response.json();
+            sessionId = data.session_id;
+            document.getElementById('upload-result').textContent = `Session ID: ${sessionId}`;
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('file-input');
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch(`/api/v1/upload/${sessionId}`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+            filename = file.name;
+            document.getElementById('upload-result').textContent = `File uploaded: ${filename}`;
+        }
+
+        async function queryEmbedding() {
+            const query = document.getElementById('query-input').value;
+            const response = await fetch(`/api/v1/query/${sessionId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ filename, query })
+            });
+
+            const data = await response.json();
+            document.getElementById('upload-result').textContent = `Answer: ${data.answer}`;
+        }
+
+        async function viewDocument() {
+            const response = await fetch(`/api/v1/view/${sessionId}/${filename}`);
+            const text = await response.text();
+            document.getElementById('document-content').value = text;
+        }
+    </script>
+</body>
+</html>

@@ -5,7 +5,7 @@ import shutil
 from fastapi import UploadFile, Depends, HTTPException
 from fastapi.security.api_key import APIKeyHeader
 import json
-
+from typing import List, Dict
 import re
 import os
 from pytube import YouTube
@@ -16,6 +16,7 @@ from openai import OpenAI
 # Load API key from .env.json file
 with open(os.path.join(os.path.dirname(__file__), '..', '.env.json')) as f:
     config = json.load(f)
+    
 API_KEY = config["API_KEY"]
 API_KEY_NAME = "access_token"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=True)
@@ -23,8 +24,16 @@ api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=True)
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
+# Allowed file extensions
+ALLOWED_EXTENSIONS = {'pdf', 'txt', 'docx', 'xlsx'}
+
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+def allowed_file(filename: str) -> bool:
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 def get_api_key(api_key: str = Depends(api_key_header)):
     if api_key != API_KEY:
@@ -93,6 +102,23 @@ def transcript_yt(filepath):
                 response_format="text"
                 )
     return transcript
+
+
+def embed_text(text: str) -> List[float]:
+    client = OpenAI()
+    client.api_key  = os.environ['OPENAI_API_KEY']
+    response = client.Embedding.create(input=text, model="text-embedding-ada-002")
+    return response['data'][0]['embedding']
+
+def query_embeddings(embedding: List[float], query: str) -> str:
+    client = OpenAI()
+    client.api_key  = os.environ['OPENAI_API_KEY']
+    response = client.Completion.create(
+        model="text-davinci-003",
+        prompt=f"Answer the question based on the following embedding: {embedding}. Question: {query}",
+        max_tokens=150
+    )
+    return response.choices[0].text.strip()
 
 # Example usage
 # url = 'https://www.youtube.com/watch?v=5hMgUbmrENM'

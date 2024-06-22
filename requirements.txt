@@ -9,3 +9,6 @@ pytube
 moviepy
 celery[redis]
 python-jose
+PyPDF2
+pandas
+python-docx

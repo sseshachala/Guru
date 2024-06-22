@@ -42,3 +42,11 @@ curl -X POST "http://localhost:8000/api/transcript-youtube" \
     -H "Content-Type: application/json" \
     -d '{"url": "https://www.youtube.com/watch?v=5hMgUbmrENM"}'
 
+curl -X POST "http://localhost:8000/upload" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "file=@/path/to/your/file.pdf"
+curl -X POST "http://localhost:8000/query" -H "accept: application/json" -H "Content-Type: application/json" -d '{
+  "embedding": [0.1, 0.2, 0.3, ...],
+  "query": "What is the content of the document?"
+}'
+curl -X GET "http://localhost:8000/view/file.pdf" -H "accept: text/plain"
+
+

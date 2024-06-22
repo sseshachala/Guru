@@ -3,8 +3,11 @@ from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
 from .auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from .api import router as api_router
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
+# Serve static files (HTML, CSS, JS)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -21,4 +24,4 @@ app.include_router(api_router)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True, debug=True)
