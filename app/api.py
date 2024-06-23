@@ -64,7 +64,8 @@ async def get_task_status(task_id: str):
     response = get_task_status(task)
     return JSONResponse(content=response)
 
-@router.post("/api/v1/upload/{session_id}")
+@router.post("/api/v1/upload/{session_id}", summary="Upload file", description="Upload a file to the user.",
+             dependencies=[Depends(verify_token)])
 async def upload_file(session_id: str, file: UploadFile = File(...)):
     if session_id not in sessions:
         raise HTTPException(status_code=404, detail="Session not found")
@@ -87,7 +88,8 @@ async def upload_file(session_id: str, file: UploadFile = File(...)):
     return JSONResponse(content={"embedding": embedding})
 
 
-@router.post("/api/v1/query/{session_id}")
+@router.post("/api/v1/query/{session_id}", summary="Query", description="Query the user.",
+             dependencies=[Depends(verify_token)])
 async def process_query(query_id: str, text: str = Query(...), sessionid: str = Query(...)):
     logging.info(f"Query: {query_id}")
     logging.info(f"Text: {text}")
@@ -97,14 +99,16 @@ async def process_query(query_id: str, text: str = Query(...), sessionid: str = 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/api/v1/view/{session_id}/{filename}")
+@router.get("/api/v1/view/{session_id}/{filename}", summary="View", description="View the user's file.",
+            dependencies=[Depends(verify_token)])
 async def view_document(session_id: str, filename: str):
     if session_id not in documents or filename not in documents[session_id]:
         raise HTTPException(status_code=404, detail="Session or document not found")
     return PlainTextResponse(documents[session_id][filename])
 
 
-@router.post("/api/v1/fetch-xml-content/{session_id}")
+@router.post("/api/v1/fetch-xml-content/{session_id}", summary="Fetch XML Content", description="Fetch XML Content",
+             dependencies=[Depends(verify_token)])
 async def fetch_xml_content(session_id: str, request: URLRequest):
     if session_id not in sessions:
         raise HTTPException(status_code=404, detail="Session not found")
