@@ -15,14 +15,6 @@ from openai import OpenAI
 
 
 
-# Load API key from .env.json file
-with open(os.path.join(os.path.dirname(__file__), '..', '.env.json')) as f:
-    config = json.load(f)
-
-API_KEY = config["API_KEY"]
-API_KEY_NAME = "access_token"
-api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=True)
-
 UPLOAD_DIR = Path("uploads")
 UPLOAD_DIR.mkdir(exist_ok=True)
 
@@ -37,10 +29,6 @@ def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def get_api_key(api_key: str = Depends(api_key_header)):
-    if api_key != API_KEY:
-        raise HTTPException(status_code=403, detail="Could not validate credentials")
-    return api_key
 
 def save_file(file: UploadFile):
     file_path = UPLOAD_DIR / file.filename
@@ -68,9 +56,8 @@ def get_youtube_id(url):
 
 def download_yt(url):
     yt = YouTube(url)
-
-    # Check if the video duration is less than 10 minutes
-    if yt.length > config.get('MAX_YOUTUBE_LENGTH', 600):  # 600 seconds = 10 minutes
+     # Check if the video duration is less than 10 minutes
+    if yt.length > int(os.environ["MAX_YOUTUBE_LENGTH"]):  # 600 seconds = 10 minutes
         logging.info(f"Video is longer than 10 minutes. Skipping download.")
         return None
     
@@ -111,7 +98,7 @@ def transcript_yt(filepath):
                 )
     return transcript
 
-def getTaskStatus(task):
+def get_task_details(task):
     if task.state == "PENDING":
         response = {
             "state": task.state,
@@ -142,6 +129,7 @@ def getTaskStatus(task):
             "total": 1,
             "status": str(task.info),  # this is the exception raised
         }
+    return response
 
 def embed_text(text: str) -> List[float]:
     client = OpenAI()

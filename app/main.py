@@ -4,6 +4,18 @@ from datetime import timedelta
 from .auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from .api import router as api_router
 from fastapi.staticfiles import StaticFiles
+import os, json
+
+
+# Load API key from .env.json file
+with open(os.path.join(os.path.dirname(__file__), '..', '.env.json')) as f:
+    config = json.load(f)
+
+os.environ["OPENAI_API_KEY"] = config["OPENAI_API_KEY"]
+os.environ["ENV"] = config["ENV"]
+os.environ["MAX_YOUTUBE_LENGTH"] = config["MAX_YOUTUBE_LENGTH"]
+os.environ["API_KEY"] = config["API_KEY"]
+
 
 app = FastAPI()
 # Serve static files (HTML, CSS, JS)

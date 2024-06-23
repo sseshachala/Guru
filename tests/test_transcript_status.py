@@ -1,26 +1,21 @@
 import requests
 import json
 
-# Define the API endpoint and API key
-url = "http://localhost:8000/api/v1/transcript-youtube"
+
+url = "http://localhost:8000/api/v1/transcript-task-status/" + "90cbab90-7552-48c9-8359-e809293e3593" 
 jwt_token = "test123"  # Replace with your actual API key
 
 # Define the payload
 payload = {
-    "url": "https://www.youtube.com/watch?v=KjCf-PXf8-8"
+    "task_id": "90cbab90-7552-48c9-8359-e809293e3593"
 }
-
 # Define the headers
 headers = {
     "Authorization": f"Bearer {jwt_token}"
-}
+}   
 
 # Send the POST request
-response = requests.post(url, headers=headers, data=json.dumps(payload))
+response = requests.get(url, headers=headers)
 # Print the response
 print(response.status_code)
 print(response.json())
-print(response.json().get("task_id"))
-
-
-

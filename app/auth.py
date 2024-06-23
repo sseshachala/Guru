@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
+import os
 
 SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
@@ -20,7 +21,8 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     return encoded_jwt
 
 def verify_token(token: str = Depends(oauth2_scheme)):
-    if token != "testuser": return "testuser"
+    if (os.environ["ENV"] == "dev"): return "testuser"
+    # if token != "testuser": return "testuser"
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",

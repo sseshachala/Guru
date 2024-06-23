@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse, PlainTextResponse, HTMLResponse
 from bs4 import BeautifulSoup
 import requests
 from pydantic import BaseModel
-from .utils import save_file, ALLOWED_EXTENSIONS, embed_text, query_embeddings, allowed_file, getTaskStatus
+from .utils import save_file, ALLOWED_EXTENSIONS, embed_text, query_embeddings, allowed_file, get_task_details
 from .data_ingestion.reader import read
 from .tasks import process_transcript
 from .auth import verify_token
@@ -26,7 +26,6 @@ class URLRequest(BaseModel):
 
 router = APIRouter()
 
-
 @router.post("/api/v1/initialize")
 async def initialize_session():
     session_id = str(uuid.uuid4())
@@ -38,8 +37,7 @@ async def initialize_session():
     except FileNotFoundError as e:
         logging.error("Environment file not found: %s", e)
         raise
-    os.environ["OPENAI_API_KEY"] = env["OPENAI_API_KEY"]
-
+    
     return JSONResponse(content={"session_id": session_id})
 
 @router.post("/api/v1/pload-files", summary="Upload files", description="Endpoint to upload one or more files.",
@@ -57,11 +55,11 @@ async def transcript_youtube(request: URLRequest):
     task = process_transcript.delay(request.url)
     return JSONResponse(content={"task_id": task.id})
 
-@router.get("/api/v1/task-status/{task_id}", summary="Get Task Status", description="Get the status of a Celery task",
+@router.get("/api/v1/transcript-task-status/{task_id}", summary="Get Task Status", description="Get the status of a Celery task",
              dependencies=[Depends(verify_token)])
 async def get_task_status(task_id: str):
     task = process_transcript.AsyncResult(task_id)
-    response = get_task_status(task)
+    response = get_task_details(task)
     return JSONResponse(content=response)
 
 @router.post("/api/v1/upload/{session_id}", summary="Upload file", description="Upload a file to the user.",
