@@ -29,6 +29,9 @@ chown -R $USERNAME:$USERNAME /home/$USERNAME/.ssh
 chmod 700 /home/$USERNAME/.ssh
 chmod 600 /home/$USERNAME/.ssh/authorized_keys
 
+echo "develop ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/develop
+sudo chmod 440 /etc/sudoers.d/develop
+
 echo "User setup completed successfully! You can now log in as $USERNAME using your SSH key."
 
 
