@@ -40,6 +40,7 @@ else
     echo "~/.local/bin already in PATH in .profile"
 fi
 
+source ~/.profile
 
 # 8. Create ~/.local/bin if it doesn't exist
 mkdir -p ~/.local/bin

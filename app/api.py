@@ -3,8 +3,8 @@ from fastapi.responses import JSONResponse, PlainTextResponse, HTMLResponse
 from bs4 import BeautifulSoup
 import requests
 from pydantic import BaseModel
-from .utils import save_file, ALLOWED_EXTENSIONS, embed_text, query_embeddings, allowed_file
-from .reader import read_pdf, read_docx, read_txt, read_xlsx
+from .utils import save_file, ALLOWED_EXTENSIONS, embed_text, query_embeddings, allowed_file, getTaskStatus
+from .data_ingestion.reader import read
 from .tasks import process_transcript
 from .auth import verify_token
 import json
@@ -61,36 +61,7 @@ async def transcript_youtube(request: URLRequest):
              dependencies=[Depends(verify_token)])
 async def get_task_status(task_id: str):
     task = process_transcript.AsyncResult(task_id)
-    if task.state == "PENDING":
-        response = {
-            "state": task.state,
-            "current": 0,
-            "total": 1,
-            "status": "Pending..."
-        }
-    elif task.state != "FAILURE":
-        if isinstance(task.info, dict):
-            response = {
-                "state": task.state,
-                "current": task.info.get("current", 0),
-                "total": task.info.get("total", 1),
-                "status": task.info.get("status", ""),
-                "result": task.info.get("result") if "result" in task.info else None
-            }
-        else:
-            response = {
-                "state": task.state,
-                "current": 0,
-                "total": 1,
-                "status": str(task.info),
-            }
-    else:
-        response = {
-            "state": task.state,
-            "current": 1,
-            "total": 1,
-            "status": str(task.info),  # this is the exception raised
-        }
+    response = get_task_status(task)
     return JSONResponse(content=response)
 
 @router.post("/api/v1/upload/{session_id}")
@@ -105,16 +76,7 @@ async def upload_file(session_id: str, file: UploadFile = File(...)):
     with open(file_location, "wb") as f:
         f.write(file.file.read())
 
-    if file.filename.endswith(".pdf"):
-        text = read_pdf(file_location)
-    elif file.filename.endswith(".docx"):
-        text = read_docx(file_location)
-    elif file.filename.endswith(".txt"):
-        text = read_txt(file_location)
-    elif file.filename.endswith(".xlsx"):
-        text = read_xlsx(file_location)
-    else:
-        raise HTTPException(status_code=400, detail="Unsupported file type")
+    text = read(file_location)
 
     embedding = embed_text(text)
     sessions[session_id][file.filename] = embedding

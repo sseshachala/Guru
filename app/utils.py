@@ -68,6 +68,12 @@ def get_youtube_id(url):
 
 def download_yt(url):
     yt = YouTube(url)
+
+    # Check if the video duration is less than 10 minutes
+    if yt.length > config.get('MAX_YOUTUBE_LENGTH', 600):  # 600 seconds = 10 minutes
+        logging.info(f"Video is longer than 10 minutes. Skipping download.")
+        return None
+    
     unique_file_name = get_youtube_id(url)
     logging.info(f"Downloading {unique_file_name}")
     file_name = '/tmp/' + unique_file_name + '.mp4'
@@ -100,11 +106,42 @@ def transcript_yt(filepath):
 
                 file=audio_file,
                 language="en",
-                prompt="Can you interpret,explain, add a metaphor and summarize",
+                # prompt="Can you interpret,explain, add a metaphor and summarize",
                 response_format="text"
                 )
     return transcript
 
+def getTaskStatus(task):
+    if task.state == "PENDING":
+        response = {
+            "state": task.state,
+            "current": 0,
+            "total": 1,
+            "status": "Pending..."
+        }
+    elif task.state != "FAILURE":
+        if isinstance(task.info, dict):
+            response = {
+                "state": task.state,
+                "current": task.info.get("current", 0),
+                "total": task.info.get("total", 1),
+                "status": task.info.get("status", ""),
+                "result": task.info.get("result") if "result" in task.info else None
+            }
+        else:
+            response = {
+                "state": task.state,
+                "current": 0,
+                "total": 1,
+                "status": str(task.info),
+            }
+    else:
+        response = {
+            "state": task.state,
+            "current": 1,
+            "total": 1,
+            "status": str(task.info),  # this is the exception raised
+        }
 
 def embed_text(text: str) -> List[float]:
     client = OpenAI()
