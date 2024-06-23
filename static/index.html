@@ -60,10 +60,12 @@
             const response = await fetch('/api/v1/initialize', { method: 'POST' });
             const data = await response.json();
             sessionId = data.session_id;
-            document.getElementById('upload-result').textContent = `Session ID: ${sessionId}`;
+            return sessionId;
+           // document.getElementById('upload-result').textContent = `Session ID: ${sessionId}`;
         }
 
         async function uploadFile() {
+            sessionId = await initializeSession();
             const fileInput = document.getElementById('file-input');
             const file = fileInput.files[0];
             const formData = new FormData();

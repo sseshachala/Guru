@@ -4,6 +4,9 @@
 
 # ./pre-req.sh <requirements_file>
 
+# This script sets up a new user with sudo privileges and a public SSH key.
+# chmod +x pre-req.sh
+
 # Check if the requirements file is provided
 if [ "$#" -ne 1 ]; then
     echo "Usage: $0 <requirements_file>"

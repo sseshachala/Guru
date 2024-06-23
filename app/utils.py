@@ -13,10 +13,12 @@ import moviepy.editor as mp
 from openai import OpenAI
 
 
+
+
 # Load API key from .env.json file
 with open(os.path.join(os.path.dirname(__file__), '..', '.env.json')) as f:
     config = json.load(f)
-    
+
 API_KEY = config["API_KEY"]
 API_KEY_NAME = "access_token"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=True)
@@ -107,8 +109,17 @@ def transcript_yt(filepath):
 def embed_text(text: str) -> List[float]:
     client = OpenAI()
     client.api_key  = os.environ['OPENAI_API_KEY']
-    response = client.Embedding.create(input=text, model="text-embedding-ada-002")
-    return response['data'][0]['embedding']
+    response = client.embeddings.create(input=text, model="text-embedding-ada-002")
+    logging.info(response)
+    # Ensure response has the expected structure
+    if hasattr(response, 'data') and isinstance(response.data, list) and len(response.data) > 0:
+        embedding_obj = response.data[0]
+        if hasattr(embedding_obj, 'embedding'):
+            return embedding_obj.embedding
+        else:
+            raise ValueError("No 'embedding' attribute found in the first element of 'data'.")
+    else:
+        raise ValueError("Invalid response structure: " + str(response))
 
 def query_embeddings(embedding: List[float], query: str) -> str:
     client = OpenAI()

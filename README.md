@@ -4,6 +4,8 @@ This project demonstrates a simple file upload using FastAPI, including logging 
 
 ## Installation
 
+# For DO - run system_config.sh and pre_reqs.sh
+
 1. Create and activate a virtual environment (optional but recommended):
     ```sh
     python -m venv venv

@@ -12,3 +12,4 @@ python-jose
 PyPDF2
 pandas
 python-docx
+httpx
