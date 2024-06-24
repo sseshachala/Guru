@@ -1,0 +1,19 @@
+{
+    "ENV": "dev",
+    "OPENAI_API_KEY":"sk-",
+    "PG_DBNAME":"develop",
+    "PG_USER":"develop",
+    "PG_PASSWORD":"develop",
+    "PG_HOST":"localhost",
+    "PG_PORT": 5432,
+    "LOG_FILENAME": "app.log",
+    "LOG_FORMAT": "%(asctime)s - %(levelname)s - %(message)s",
+    "LOG_FILEMODE": "a",
+    "AWS_ACCESS_KEY_ID": "AKIEZ35SRN7KMC",
+    "AWS_SECRET_ACCESS_KEY": "",
+    "AWS_DEFAULT_REGION": "us-east-2",
+    "AWS_BUCKET_NAME": "vishnu-shankara",
+    "API_KEY": "test123",
+    "MAX_YOUTUBE_LENGTH": "600",
+    "CLAUDAI_API_KEY": "sk-ant--cE6MYwAA"
+}
