@@ -29,11 +29,6 @@ appendfilename "appendonly.aof"
 EOF
 sudo systemctl restart redis-server
 
-# Install RabbitMQ
-sudo apt install -y rabbitmq-server
-sudo systemctl enable rabbitmq-server
-sudo systemctl start rabbitmq-server
-
 # Install PostgreSQL
 sudo apt install -y postgresql postgresql-contrib
 sudo -u postgres psql <<EOF
@@ -53,9 +48,10 @@ sudo chown $USER:$USER $PROJECT_DIR
 # Create a Python virtual environment and install dependencies
 python3 -m venv $PROJECT_DIR/venv
 source $PROJECT_DIR/venv/bin/activate
-pip install celery[redis] gunicorn uvicorn psycopg2-binary
+pip install celery[redis] gunicorn uvicorn psycopg2-binary fastapi
 
 # Sample FastAPI application setup
+mkdir -p $PROJECT_DIR/app
 cat > $PROJECT_DIR/app/main.py <<EOF
 from fastapi import FastAPI
 
@@ -73,7 +69,7 @@ from celery import Celery
 celery_app = Celery(
     "worker",
     backend="db+postgresql://$db_user:$db_password@localhost/$db_name",
-    broker="amqp://localhost"
+    broker="redis://localhost:6379/0"
 )
 
 celery_app.conf.update(
@@ -107,10 +103,6 @@ Group=redis
 [Install]
 WantedBy=multi-user.target
 EOF
-
-# RabbitMQ service file (if not already present)
-sudo systemctl enable rabbitmq-server
-sudo systemctl start rabbitmq-server
 
 # Celery service file
 cat <<EOF | sudo tee /etc/systemd/system/celery.service
@@ -151,18 +143,65 @@ EOF
 # Reload systemd and start services
 sudo systemctl daemon-reload
 sudo systemctl enable celery
-sudo systemctl start celery
+sudo systemctl start celery || (echo "Failed to start celery service. See 'systemctl status celery.service' and 'journalctl -xeu celery.service' for details." && exit 1)
 sudo systemctl enable gunicorn
 sudo systemctl start gunicorn
 
-# Install Prometheus and Grafana
-sudo apt install -y prometheus grafana
+# Install Prometheus
+sudo useradd --no-create-home --shell /bin/false prometheus
+sudo mkdir /etc/prometheus
+sudo mkdir /var/lib/prometheus
+sudo chown prometheus:prometheus /etc/prometheus
+sudo chown prometheus:prometheus /var/lib/prometheus
 
-# Start and enable Prometheus and Grafana
+cd /tmp
+curl -LO https://github.com/prometheus/prometheus/releases/download/v2.40.0/prometheus-2.40.0.linux-amd64.tar.gz
+tar xvf prometheus-2.40.0.linux-amd64.tar.gz
+cd prometheus-2.40.0.linux-amd64
+
+sudo cp prometheus /usr/local/bin/
+sudo cp promtool /usr/local/bin/
+sudo chown prometheus:prometheus /usr/local/bin/prometheus
+sudo chown prometheus:prometheus /usr/local/bin/promtool
+
+sudo cp -r consoles /etc/prometheus
+sudo cp -r console_libraries /etc/prometheus
+sudo cp prometheus.yml /etc/prometheus/prometheus.yml
+sudo chown -R prometheus:prometheus /etc/prometheus/consoles
+sudo chown -R prometheus:prometheus /etc/prometheus/console_libraries
+sudo chown prometheus:prometheus /etc/prometheus/prometheus.yml
+
+# Prometheus service file
+cat <<EOF | sudo tee /etc/systemd/system/prometheus.service
+[Unit]
+Description=Prometheus
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=prometheus
+Group=prometheus
+Type=simple
+ExecStart=/usr/local/bin/prometheus \\
+    --config.file /etc/prometheus/prometheus.yml \\
+    --storage.tsdb.path /var/lib/prometheus/ \\
+    --web.console.templates=/etc/prometheus/consoles \\
+    --web.console.libraries=/etc/prometheus/console_libraries
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
 sudo systemctl start prometheus
 sudo systemctl enable prometheus
-sudo systemctl start grafana-server
-sudo systemctl enable grafana-server
+
+# Install Grafana using Snap
+sudo snap install grafana
+
+# Start and enable Grafana
+sudo systemctl start snap.grafana.grafana
+sudo systemctl enable snap.grafana.grafana
 
 # Get the server IP address
 server_ip=$(hostname -I | awk '{print $1}')
