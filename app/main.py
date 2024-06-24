@@ -15,6 +15,12 @@ os.environ["OPENAI_API_KEY"] = config["OPENAI_API_KEY"]
 os.environ["ENV"] = config["ENV"]
 os.environ["MAX_YOUTUBE_LENGTH"] = config["MAX_YOUTUBE_LENGTH"]
 os.environ["API_KEY"] = config["API_KEY"]
+os.environ["PG_DBNAME"] = config["PG_DBNAME"]
+os.environ["PG_USER"] = config["PG_USER"]
+os.environ["PG_PASSWORD"] = config["PG_PASSWORD"]
+os.environ["PG_HOST"] = config["PG_HOST"]
+os.environ["PG_PORT"] = config["PG_PORT"]
+
 
 
 app = FastAPI()

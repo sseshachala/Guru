@@ -4,9 +4,13 @@ from bs4 import BeautifulSoup
 import requests
 from pydantic import BaseModel
 from .utils import save_file, ALLOWED_EXTENSIONS, embed_text, query_embeddings, allowed_file, get_task_details
+from .database.db_util import get_db
+from .database.schemas import UserCreate, UserLogin, PasswordResetRequest, PasswordReset
+from .database.services import create_user, authenticate_user, reset_password_request, reset_password, delete_user, logout_user
 from .data_ingestion.reader import read
 from .tasks import process_transcript
 from .auth import verify_token
+from sqlalchemy.orm import Session
 import json
 
 
@@ -124,6 +128,33 @@ async def fetch_xml_content(session_id: str, request: URLRequest):
     documents[session_id][request.url] = text
 
     return JSONResponse(content={"embedding": embedding, "content": text})
+
+
+@router.post("/api/v1/register", summary="User Registration", description="",
+             dependencies=[Depends(verify_token)])
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    return create_user(db, user)
+
+@router.post("/api/v1/login/", summary="User Login", description="",
+              dependencies=[Depends(verify_token)])
+def login(user: UserLogin, db: Session = Depends(get_db)):
+    return authenticate_user(db, user)
+
+@router.post("/api/v1/forgot-password/", summary="Forgot Password", description="Forgot Password", dependencies=[Depends(verify_token)])
+def forgot_password(request: PasswordResetRequest, db: Session = Depends(get_db)):
+    return reset_password_request(db, request)
+
+@router.post("/api/v1/reset-password/", summary="Reset Password", description="Reset Password", dependencies=[Depends(verify_token)])
+def reset_password(reset: PasswordReset, db: Session = Depends(get_db)):
+    return reset_password(db, reset)
+
+@router.delete("/api/v1/users/{email}" , summary="Delete User", description="Delete User", dependencies=[Depends(verify_token)])
+def delete_user_endpoint(email: str, db: Session = Depends(get_db), token: str = Depends(authenticate_user)):
+    return delete_user(db, email, token)
+
+@router.post("/api/v1/logout/", summary="Logout", description="Logout", dependencies=[Depends(verify_token)])
+def logout(token: str, db: Session = Depends(get_db)):
+    return logout_user(db, token)
 
 @router.get("/")
 async def read_index():

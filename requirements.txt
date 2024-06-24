@@ -13,3 +13,7 @@ PyPDF2
 pandas
 python-docx
 httpx
+sqlalchemy 
+alembic 
+psycopg2-binary 
+passlib
