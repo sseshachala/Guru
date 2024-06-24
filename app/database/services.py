@@ -1,7 +1,7 @@
 # services.py
 from sqlalchemy.orm import Session
-from models import User, Session as UserSession, UserType
-from schemas import UserCreate, UserLogin, PasswordReset
+from .models import User, Session as UserSession, UserType
+from .schemas import UserCreate, UserLogin, PasswordReset, PasswordResetRequest
 from passlib.context import CryptContext
 import secrets
 from fastapi import HTTPException, status

@@ -1,25 +1,16 @@
+import os, json
+# Load environment variables from .env.json
+with open(os.path.join(os.path.dirname(__file__), '..', '.env.json')) as f:
+    config = json.load(f)
+    for key, value in config.items():
+        os.environ[key] = str(value) 
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.staticfiles import StaticFiles
 from datetime import timedelta
 from .auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from .api import router as api_router
-from fastapi.staticfiles import StaticFiles
-import os, json
-
-
-# Load API key from .env.json file
-with open(os.path.join(os.path.dirname(__file__), '..', '.env.json')) as f:
-    config = json.load(f)
-
-os.environ["OPENAI_API_KEY"] = config["OPENAI_API_KEY"]
-os.environ["ENV"] = config["ENV"]
-os.environ["MAX_YOUTUBE_LENGTH"] = config["MAX_YOUTUBE_LENGTH"]
-os.environ["API_KEY"] = config["API_KEY"]
-os.environ["PG_DBNAME"] = config["PG_DBNAME"]
-os.environ["PG_USER"] = config["PG_USER"]
-os.environ["PG_PASSWORD"] = config["PG_PASSWORD"]
-os.environ["PG_HOST"] = config["PG_HOST"]
-os.environ["PG_PORT"] = config["PG_PORT"]
 
 
 

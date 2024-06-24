@@ -1,16 +1,3 @@
-from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Query
-from fastapi.responses import JSONResponse, PlainTextResponse, HTMLResponse
-from bs4 import BeautifulSoup
-import requests
-from pydantic import BaseModel
-from .utils import save_file, ALLOWED_EXTENSIONS, embed_text, query_embeddings, allowed_file, get_task_details
-from .database.db_util import get_db
-from .database.schemas import UserCreate, UserLogin, PasswordResetRequest, PasswordReset
-from .database.services import create_user, authenticate_user, reset_password_request, reset_password, delete_user, logout_user
-from .data_ingestion.reader import read
-from .tasks import process_transcript
-from .auth import verify_token
-from sqlalchemy.orm import Session
 import json
 
 
@@ -20,6 +7,21 @@ import openai
 import os
 import uuid
 import logging
+import requests
+from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Query
+from fastapi.responses import JSONResponse, PlainTextResponse, HTMLResponse
+from bs4 import BeautifulSoup
+from sqlalchemy.orm import Session
+from pydantic import BaseModel
+from .utils import save_file, embed_text, allowed_file, get_task_details
+from .database.db_util import get_db
+from .database.schemas import UserCreate, UserLogin, PasswordResetRequest, PasswordReset
+from .database.services import create_user, authenticate_user, reset_password_request, reset_password, delete_user, logout_user
+from .data_ingestion.reader import read
+from .tasks import process_transcript
+from .auth import verify_token
+
+
 
 # Storage for sessions, documents and embeddings
 sessions: Dict[str, Dict[str, List[float]]] = {}
@@ -149,7 +151,8 @@ def reset_password(reset: PasswordReset, db: Session = Depends(get_db)):
     return reset_password(db, reset)
 
 @router.delete("/api/v1/users/{email}" , summary="Delete User", description="Delete User", dependencies=[Depends(verify_token)])
-def delete_user_endpoint(email: str, db: Session = Depends(get_db), token: str = Depends(authenticate_user)):
+def delete_user_endpoint(email: str, db: Session = Depends(get_db)):
+    token = authenticate_user(db, UserLogin(email=email))
     return delete_user(db, email, token)
 
 @router.post("/api/v1/logout/", summary="Logout", description="Logout", dependencies=[Depends(verify_token)])
