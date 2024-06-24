@@ -16,7 +16,7 @@ DATABASE_URL = (
     + "@"
     + env["PG_HOST"]
     + ":"
-    + env["PG_PORT"]
+    + str(env["PG_PORT"])  # or env["PG_PORT"]
     + "/"
     + env["PG_DBNAME"]
 )

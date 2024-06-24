@@ -16,6 +16,7 @@ httpx
 sqlalchemy 
 alembic 
 psycopg2-binary 
-passlib
 OpenAI
 boto3
+argon2-cffi 
+passlib

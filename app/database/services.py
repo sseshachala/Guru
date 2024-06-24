@@ -3,16 +3,18 @@ from sqlalchemy.orm import Session
 from .models import User, Session as UserSession, UserType
 from .schemas import UserCreate, UserLogin, PasswordReset, PasswordResetRequest
 from passlib.context import CryptContext
+from passlib.hash import argon2
 import secrets
 from fastapi import HTTPException, status
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def get_password_hash(password):
-    return pwd_context.hash(password)
+    return argon2.hash(password)
 
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    return argon2.verify(plain_password, hashed_password)
 
 def create_user(db: Session, user: UserCreate):
     db_user = db.query(User).filter(User.email == user.email).first()
