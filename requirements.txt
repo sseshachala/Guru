@@ -17,4 +17,5 @@ sqlalchemy
 alembic 
 psycopg2-binary 
 passlib
-openai
+OpenAI
+boto3
