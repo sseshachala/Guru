@@ -29,61 +29,6 @@ appendfilename "appendonly.aof"
 EOF
 sudo systemctl restart redis-server
 
-# Install PostgreSQL
-sudo apt install -y postgresql postgresql-contrib
-sudo -u postgres psql <<EOF
-CREATE DATABASE $db_name;
-CREATE USER $db_user WITH ENCRYPTED PASSWORD '$db_password';
-GRANT ALL PRIVILEGES ON DATABASE $db_name TO $db_user;
-EOF
-
-# Install Python and virtual environment tools
-sudo apt install -y python3 python3-venv python3-pip
-
-# Create a project directory
-PROJECT_DIR=/opt/your_project_directory
-sudo mkdir -p $PROJECT_DIR
-sudo chown $USER:$USER $PROJECT_DIR
-
-# Create a Python virtual environment and install dependencies
-python3 -m venv $PROJECT_DIR/venv
-source $PROJECT_DIR/venv/bin/activate
-pip install celery[redis] gunicorn uvicorn psycopg2-binary fastapi
-
-# Sample FastAPI application setup
-mkdir -p $PROJECT_DIR/app
-cat > $PROJECT_DIR/app/main.py <<EOF
-from fastapi import FastAPI
-
-app = FastAPI()
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-EOF
-
-# Sample Celery configuration and task
-cat > $PROJECT_DIR/celery_app.py <<EOF
-from celery import Celery
-
-celery_app = Celery(
-    "worker",
-    backend="db+postgresql://$db_user:$db_password@localhost/$db_name",
-    broker="redis://localhost:6379/0"
-)
-
-celery_app.conf.update(
-    task_serializer="json",
-    accept_content=["json"],
-    result_serializer="json",
-    timezone="UTC",
-    enable_utc=True,
-)
-
-@celery_app.task
-def add(x, y):
-    return x + y
-EOF
 
 # Systemd service files
 
@@ -114,8 +59,7 @@ After=network.target
 Type=forking
 User=$USER
 Group=www-data
-WorkingDirectory=$PROJECT_DIR
-ExecStart=$PROJECT_DIR/venv/bin/celery -A celery_app.celery_app worker --loglevel=info --pidfile=/var/run/celery/celery.pid
+ExecStart=celery -A celery_app.celery_app worker --loglevel=info --pidfile=/var/run/celery/celery.pid --logfile=/var/log/celery/celery.log
 PIDFile=/var/run/celery/celery.pid
 Restart=always
 
@@ -212,5 +156,6 @@ echo "Access Prometheus at http://$server_ip:9090"
 echo "Access Grafana at http://$server_ip:3000 (default login is admin/admin)"
 echo "Ensure Prometheus and Grafana are configured to scrape metrics from your services."
 echo "Configure Grafana to use Prometheus as a data source."
+echo "Celery log: /var/log/celery/celery.log"
 
 # End of script
