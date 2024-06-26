@@ -52,6 +52,7 @@ sudo chown $USER:$USER $PROJECT_DIR
 python3 -m venv $PROJECT_DIR/venv
 source $PROJECT_DIR/venv/bin/activate
 pip install celery[redis] gunicorn uvicorn psycopg2-binary fastapi
+sudo apt install -y celery
 
 # Sample FastAPI application setup
 mkdir -p $PROJECT_DIR/app
@@ -117,8 +118,8 @@ After=network.target
 Type=forking
 User=$USER
 Group=www-data
-WorkingDirectory=$PROJECT_DIR
-ExecStart=$PROJECT_DIR/venv/bin/celery -A celery_app.celery_app worker --loglevel=info --pidfile=/var/run/celery/celery.pid
+WorkingDirectory="/home/develop/Guru"
+ExecStart=$WorkingDirectory -A celery_app.celery_app worker --loglevel=info --pidfile=/var/run/celery/celery.pid
 PIDFile=/var/run/celery/celery.pid
 Restart=always
 

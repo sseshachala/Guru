@@ -9,7 +9,7 @@
 
 # Check if the correct number of arguments is provided
 if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 <requirements_file> <db_name> <db_user> <db_password>"
+    echo "Usage: $0 <requirements_file>"
     exit 1
 fi
 
@@ -25,6 +25,7 @@ sudo add-apt-repository -y ppa:deadsnakes/ppa
 sudo apt update
 sudo apt install -y python3.12 python3.12-venv python3.12-dev
 sudo apt install alembic
+
 
 # 5. Install PostgreSQL
 # sudo apt install -y postgresql postgresql-contrib
@@ -48,22 +49,3 @@ source ~/.profile
 
 # 8. Create ~/.local/bin if it doesn't exist
 mkdir -p ~/.local/bin
-
-# 9. Set up PostgreSQL user and database
-# sudo -i -u postgres psql <<EOF
--- Create a new PostgreSQL user
- # CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';
-
--- Create a new PostgreSQL database
-# CREATE DATABASE $DB_NAME OWNER $DB_USER;
-
--- Grant all privileges on the database to the new user
-# GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
-
--- Exit the PostgreSQL prompt
-# EOF
-
-# echo "PostgreSQL setup completed: user '$DB_USER' with database '$DB_NAME' has been created."
-
-# echo "Python, PostgreSQL, and requirements installation completed successfully!"
-echo "~/.local/bin has been added to your PATH. Please log out and log back in, or run 'source ~/.profile' to apply the changes."

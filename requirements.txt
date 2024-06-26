@@ -15,8 +15,11 @@ python-docx
 httpx
 sqlalchemy 
 alembic 
+psycopg2
 psycopg2-binary 
 OpenAI
 boto3
 argon2-cffi 
 passlib
+gunicorn
+bs4

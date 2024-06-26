@@ -34,4 +34,27 @@ sudo chmod 440 /etc/sudoers.d/develop
 
 echo "User setup completed successfully! You can now log in as $USERNAME using your SSH key."
 
+# Ensure UFW is installed
+if ! command -v ufw &> /dev/null
+then
+    echo "UFW is not installed. Installing UFW..."
+    sudo apt-get update
+    sudo apt-get install ufw -y
+fi
+
+# Enable UFW
+echo "Enabling UFW..."
+sudo ufw enable
+
+# Allow ports 80 and 8000
+echo "Allowing ports 80 and 8000..."
+sudo ufw allow 80
+sudo ufw allow 8000
+
+# Reload UFW to apply changes
+echo "Reloading UFW..."
+sudo ufw reload
+
+echo "Ports 80 and 8000 are now open."
+
 
