@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# sudo ./system_config.sh develop "1yc2EAAMqpBEpRBUTKoA+6aV4/Tx4Gs/LYhXC1U5oCZ2KPoJAJtHTMKBaKlg0ICi5 ctp1126@CTPs-MBP-2"
+# sudo ./system_config.sh develop "ssh-rsa AAAAB3Nza... user@host"
 
 # This script sets up a new user with sudo privileges and a public SSH key.
 # chmod +x system_config.sh
@@ -24,13 +24,14 @@ usermod -aG sudo $USERNAME
 
 # 3. Set up SSH key
 mkdir -p /home/$USERNAME/.ssh
-echo "$SSH_PUBLIC_KEY" | tee /home/$USERNAME/.ssh/authorized_keys
-chown -R $USERNAME:$USERNAME /home/$USERNAME/.ssh
-chmod 700 /home/$USERNAME/.ssh
-chmod 600 /home/$USERNAME/.ssh/authorized_keys
+echo "$SSH_PUBLIC_KEY" | sudo tee /home/$USERNAME/.ssh/authorized_keys > /dev/null
+sudo chown -R $USERNAME:$USERNAME /home/$USERNAME/.ssh
+sudo chmod 700 /home/$USERNAME/.ssh
+sudo chmod 600 /home/$USERNAME/.ssh/authorized_keys
 
-echo "develop ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/develop
-sudo chmod 440 /etc/sudoers.d/develop
+# 4. Add user to sudoers file
+echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" | sudo tee /etc/sudoers.d/$USERNAME
+sudo chmod 440 /etc/sudoers.d/$USERNAME
 
 echo "User setup completed successfully! You can now log in as $USERNAME using your SSH key."
 
@@ -46,8 +47,9 @@ fi
 echo "Enabling UFW..."
 sudo ufw enable
 
-# Allow ports 80 and 8000
-echo "Allowing ports 80 and 8000..."
+# Allow ports 22, 80, and 8000
+echo "Allowing ports 22, 80, and 8000..."
+sudo ufw allow 22
 sudo ufw allow 80
 sudo ufw allow 8000
 
@@ -55,6 +57,4 @@ sudo ufw allow 8000
 echo "Reloading UFW..."
 sudo ufw reload
 
-echo "Ports 80 and 8000 are now open."
-
-
+echo "Ports 22, 80, and 8000 are now open."

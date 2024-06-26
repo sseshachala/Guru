@@ -52,6 +52,7 @@ sudo chown $USER:$USER $PROJECT_DIR
 python3 -m venv $PROJECT_DIR/venv
 source $PROJECT_DIR/venv/bin/activate
 pip install celery[redis] gunicorn uvicorn psycopg2-binary fastapi
+sudo apt install -y redis-server
 sudo apt install -y celery
 
 # Sample FastAPI application setup
