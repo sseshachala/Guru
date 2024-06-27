@@ -1,4 +1,8 @@
 import os, json
+
+# Correctly locate the .env.json file
+env_path = os.path.join(os.path.dirname(__file__), '..', '.env.json')
+
 # Load environment variables from .env.json
 with open(os.path.join(os.path.dirname(__file__), '..', '.env.json')) as f:
     config = json.load(f)
