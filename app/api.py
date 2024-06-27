@@ -1,6 +1,4 @@
 import json
-
-
 import pandas as pd
 from typing import List, Dict
 import openai
@@ -12,20 +10,24 @@ from fastapi import APIRouter, Depends, File, UploadFile, HTTPException, Query
 from fastapi.responses import JSONResponse, PlainTextResponse, HTMLResponse
 from bs4 import BeautifulSoup
 from sqlalchemy.orm import Session
+
+from sqlalchemy.exc import SQLAlchemyError 
 from pydantic import BaseModel
-from .utils import save_file, embed_text, allowed_file, get_task_details
+from .utils import save_file, embed_text, allowed_file, get_task_details, user_to_dict
 from .database.db_util import get_db
-from .database.schemas import UserCreate, UserLogin, PasswordResetRequest, PasswordReset
-from .database.services import create_user, authenticate_user, reset_password_request, reset_password, delete_user, logout_user
+from .database.schemas import UserCreate, UserLogin, PasswordResetRequest, PasswordReset, EmbeddingCreate, IndexCreate
+from .database.services import create_user, authenticate_user, reset_password_request, reset_password, delete_user, logout_user, create_embedding, create_index
 from .data_ingestion.reader import read
 from .tasks import process_transcript
 from .auth import verify_token
 
-
-
 # Storage for sessions, documents and embeddings
 sessions: Dict[str, Dict[str, List[float]]] = {}
 documents: Dict[str, Dict[str, str]] = {}
+
+def handle_db_exception(e):
+    return JSONResponse(content={"error": "Database error", "details": str(e)}, status_code=500)
+
 
 class URLRequest(BaseModel):
     url: str
@@ -77,7 +79,7 @@ async def upload_file(session_id: str, file: UploadFile = File(...)):
     if not allowed_file(file.filename):
         raise HTTPException(status_code=400, detail="File type not allowed")
 
-    file_location = f"uploads/{file.filename}"
+    file_location = f"/tmp/{file.filename}"
     with open(file_location, "wb") as f:
         f.write(file.file.read())
 
@@ -132,33 +134,79 @@ async def fetch_xml_content(session_id: str, request: URLRequest):
     return JSONResponse(content={"embedding": embedding, "content": text})
 
 
-@router.post("/api/v1/register", summary="User Registration", description="",
-             dependencies=[Depends(verify_token)])
+@router.post("/api/v1/register", summary="User Registration", description="")
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
-    return create_user(db, user)
+    try:
+        user_data = create_user(db, user)
+        return JSONResponse(content={"user": user_to_dict(user_data)})
+    except SQLAlchemyError as e:
+        db.rollback()
+        return handle_db_exception(e)
 
-@router.post("/api/v1/login/", summary="User Login", description="",
-              dependencies=[Depends(verify_token)])
+@router.post("/api/v1/login/", summary="User Login", description="")
 def login(user: UserLogin, db: Session = Depends(get_db)):
-    return authenticate_user(db, user)
+    try:
+        token_data = authenticate_user(db, user)
+        return JSONResponse(content=token_data)
+    except SQLAlchemyError as e:
+        db.rollback()
+        return handle_db_exception(e)
 
-@router.post("/api/v1/forgot-password/", summary="Forgot Password", description="Forgot Password", dependencies=[Depends(verify_token)])
+@router.post("/api/v1/forgot-password/", summary="Forgot Password", description="Forgot Password")
 def forgot_password(request: PasswordResetRequest, db: Session = Depends(get_db)):
-    return reset_password_request(db, request)
+    try:
+        reset_data = reset_password_request(db, request)
+        return JSONResponse(content=reset_data)
+    except SQLAlchemyError as e:
+        db.rollback()
+        return handle_db_exception(e)
 
-@router.post("/api/v1/reset-password/", summary="Reset Password", description="Reset Password", dependencies=[Depends(verify_token)])
-def reset_password(reset: PasswordReset, db: Session = Depends(get_db)):
-    return reset_password(db, reset)
+@router.post("/api/v1/reset-password/", summary="Reset Password", description="Reset Password")
+def reset_password_endpoint(reset: PasswordReset, db: Session = Depends(get_db)):
+    try:
+        reset_data = reset_password(db, reset)
+        return JSONResponse(content=reset_data)
+    except SQLAlchemyError as e:
+        db.rollback()
+        return handle_db_exception(e)
 
-@router.delete("/api/v1/users/{email}" , summary="Delete User", description="Delete User", dependencies=[Depends(verify_token)])
-def delete_user_endpoint(email: str, db: Session = Depends(get_db)):
-    token = authenticate_user(db, UserLogin(email=email))
-    return delete_user(db, email, token)
+
+
+@router.delete("/api/v1/users/{email}", summary="Delete User", description="Delete User", dependencies=[Depends(verify_token)])
+def delete_user_endpoint(email: str, db: Session = Depends(get_db), token: str = Depends(verify_token)):
+    try:
+        delete_data = delete_user(db, email, token)
+        return JSONResponse(content=delete_data)
+    except SQLAlchemyError as e:
+        db.rollback()
+        return handle_db_exception(e)
 
 @router.post("/api/v1/logout/", summary="Logout", description="Logout", dependencies=[Depends(verify_token)])
 def logout(token: str, db: Session = Depends(get_db)):
-    return logout_user(db, token)
+    try:
+        logout_data = logout_user(db, token)
+        return JSONResponse(content=logout_data)
+    except SQLAlchemyError as e:
+        db.rollback()
+        return handle_db_exception(e)
 
+@router.post("/api/v1/embedding/", summary="Create Embedding", description="")
+def create_embedding_endpoint(embedding: EmbeddingCreate, db: Session = Depends(get_db)):
+    try:
+        embedding_data = create_embedding(db, embedding)
+        return JSONResponse(content={"embedding": embedding_data})
+    except SQLAlchemyError as e:
+        db.rollback()
+        return handle_db_exception(e)
+
+@router.post("/api/v1/index/", summary="Create Index", description="")
+def create_index_endpoint(index: IndexCreate, db: Session = Depends(get_db)):
+    try:
+        index_data = create_index(db, index)
+        return JSONResponse(content={"index": index_data})
+    except SQLAlchemyError as e:
+        db.rollback()
+        return handle_db_exception(e)
 @router.get("/")
 async def read_index():
     with open("static/index.html") as f:

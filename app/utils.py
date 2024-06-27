@@ -29,6 +29,13 @@ def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def user_to_dict(user):
+    return {
+        "id": user.id,
+        "email": user.email,
+        "creation_date": user.creation_date.isoformat() if user.creation_date else None,
+        "keep_logged_in": user.keep_logged_in
+    }
 
 def save_file(file: UploadFile):
     file_path = UPLOAD_DIR / file.filename
