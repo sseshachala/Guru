@@ -35,3 +35,6 @@ sudo chmod 440 /etc/sudoers.d/$USERNAME
 
 echo "User setup completed successfully! You can now log in as $USERNAME using your SSH key."
 
+# Update and upgrade the system
+sudo apt update && sudo apt upgrade -y
+

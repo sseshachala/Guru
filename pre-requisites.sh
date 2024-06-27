@@ -23,9 +23,6 @@ read -p "Enter the user to run redis/celery/gunicorn: " USER
 read -p "Enter the group to run redis/celery/gunicorn: " GROUP
 read -p "Enter the working directory (full path): " WORKING_DIR
 
-# Update and upgrade the system
-sudo apt update && sudo apt upgrade -y
-
 # Install Python 3.10 and related packages
 sudo apt install -y python3.10 python3.10-venv python3.10-dev python3-pip
 
