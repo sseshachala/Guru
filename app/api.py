@@ -46,7 +46,7 @@ async def initialize_session():
     
     return JSONResponse(content={"session_id": session_id})
 
-@router.post("/api/v1/pload-files", summary="Upload files", description="Endpoint to upload one or more files.",
+@router.post("/api/v1/upload-files", summary="Upload files", description="Endpoint to upload one or more files.",
              dependencies=[Depends(verify_token)])
 async def upload_files(files: list[UploadFile] = File(...)):
     response_data = []

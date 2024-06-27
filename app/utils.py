@@ -56,8 +56,9 @@ def get_youtube_id(url):
 
 def download_yt(url):
     yt = YouTube(url)
+    len = int(os.environ.get("MAX_YOUTUBE_LENGTH", 600))
      # Check if the video duration is less than 10 minutes
-    if yt.length > int(os.environ["MAX_YOUTUBE_LENGTH"]):  # 600 seconds = 10 minutes
+    if yt.length > len:  # 600 seconds = 10 minutes
         logging.info(f"Video is longer than 10 minutes. Skipping download.")
         return None
     
