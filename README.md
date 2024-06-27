@@ -4,7 +4,7 @@ This project demonstrates a simple file upload using FastAPI, including logging 
 
 ## Installation
 
-# For DO - run system_config.sh and pre_reqs.sh
+# For DO - run system_config.sh and pre-requisites.sh
 
 1. Create and activate a virtual environment (optional but recommended):
     ```sh
@@ -50,5 +50,39 @@ curl -X POST "http://localhost:8000/query" -H "accept: application/json" -H "Con
   "query": "What is the content of the document?"
 }'
 curl -X GET "http://localhost:8000/view/file.pdf" -H "accept: text/plain"
+
+
+
+For dev server on DO - ubuntu
+
+wget the systemconfig.sh from git (Raw version)
+chmod +x systemconfig
+
+sudo ./system_config <username> <"SSH Key String">
+
+
+git clone <repository>
+
+cd <project_name> # Ex cd Guru
+chmod +x pre-requistes.sh
+
+cp develop-env.json .env.json
+modify DB and OPENAI_API_KEY KEY
+
+run ./pre-requistes.sh requirements.txt
+Then provide username, group and working directory  for the linux
+
+# Check Redis status
+sudo systemctl status redis-server
+redis-cli ping
+
+# Check Celery status
+sudo systemctl status celery.service
+ps aux | grep 'celery worker'
+
+# Check Gunicorn status
+sudo systemctl status app.main
+ps aux | grep gunicorn
+
 
 
