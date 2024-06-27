@@ -1,4 +1,3 @@
-[python] Here is the generated API documentation for your provided FastAPI code. The documentation includes summaries, descriptions, and details about the request and response for each endpoint:
 
 ### API Documentation
 
