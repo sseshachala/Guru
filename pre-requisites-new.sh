@@ -65,7 +65,7 @@ pip install gunicorn
 # Create log directory
 LOG_DIR="/var/log/app_main"
 mkdir -p $LOG_DIR
-chown $USER:$GROUP $LOG_DIRP
+chown $USER:$GROUP $LOG_DIR
 chown $USER:$GROUP $LOG_DIR/access.log
 chown $USER:$GROUP $LOG_DIR/error.log
 
