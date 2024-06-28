@@ -1,7 +1,7 @@
 import requests
 
 # Define the base URL of your FastAPI application
-BASE_URL = "http://159.89.228.58:8000"
+BASE_URL = "http://localhost:8000"
 
 # Define the register endpoint
 REGISTER_ENDPOINT = f"{BASE_URL}/api/v1/register"

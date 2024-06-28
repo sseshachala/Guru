@@ -5,7 +5,7 @@
 # Usage: ./pre-req.sh <requirements_file>
 
 # Check if the correct number of arguments is provided
-if [ "$#" -ne 4 ]; then
+if [ "$#" -ne 1 ]; then
     echo "Usage: $0 <requirements_file>"
     exit 1
 fi
