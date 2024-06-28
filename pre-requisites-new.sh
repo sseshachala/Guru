@@ -6,14 +6,12 @@
 
 # Check if the correct number of arguments is provided
 if [ "$#" -ne 4 ]; then
-    echo "Usage: $0 <requirements_file>, USER, GROUP, WORKING_DIR"
+    echo "Usage: $0 <requirements_file>"
     exit 1
 fi
 
 REQUIREMENTS_FILE=$1
-USER = $2 
-GROUP = $3
-WORKING_DIR = $4
+
 
 # Function to prompt for input and default value
 if [ "$(id -u)" -ne 0 ]; then
@@ -22,9 +20,9 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 # Prompt for user input
-# read -p "Enter the user to run gunicorn: " USER
-# read -p "Enter the group to run gunicorn: " GROUP
-# read -p "Enter the working directory (full path): " WORKING_DIR
+read -p "Enter the user to run gunicorn: " USER
+read -p "Enter the group to run gunicorn: " GROUP
+read -p "Enter the working directory (full path): " WORKING_DIR
 
 # Install Python 3.10 and related packages
 sudo apt install -y python3.10 python3.10-venv python3.10-dev python3-pip
@@ -32,6 +30,7 @@ sudo apt install -y python3.10 python3.10-venv python3.10-dev python3-pip
 # Create virtual environment
 python3.10 -m venv $WORKING_DIR/venv
 source $WORKING_DIR/venv/bin/activate
+sudo apt install alembic
 
 # Install pip for Python 3.10
 curl https://bootstrap.pypa.io/get-pip.py | python3.10
@@ -62,8 +61,6 @@ mkdir -p ~/.local/bin
 # Install Gunicorn
 pip install gunicorn
 
-# Find the full path to Gunicorn
-GUNICORN_PATH=$(which gunicorn)
 
 # Create log directory
 LOG_DIR="/var/log/app_main"
@@ -80,7 +77,7 @@ After=network.target
 User=$USER
 Group=$GROUP
 WorkingDirectory=$WORKING_DIR
-ExecStart=$GUNICORN_PATH app.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 --access-logfile $LOG_DIR/access.log --error-logfile $LOG_DIR/error.log
+ExecStart=gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:8000 --access-logfile $LOG_DIR/access.log --error-logfile $LOG_DIR/error.log
 Restart=always
 
 [Install]
