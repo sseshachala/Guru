@@ -65,7 +65,10 @@ pip install gunicorn
 # Create log directory
 LOG_DIR="/var/log/app_main"
 mkdir -p $LOG_DIR
-chown $USER:$GROUP $LOG_DIR
+chown $USER:$GROUP $LOG_DIRP
+chown $USER:$GROUP $LOG_DIR/access.log
+chown $USER:$GROUP $LOG_DIR/error.log
+
 
 # Create the systemd service file for the FastAPI app with Gunicorn
 cat << EOF > /etc/systemd/system/app.main.service
